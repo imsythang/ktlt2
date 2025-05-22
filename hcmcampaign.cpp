@@ -1,3 +1,4 @@
+
 #include "hcmcampaign.h"
 // Hồ Sỹ Thắng - 2213188
 
@@ -162,24 +163,13 @@ void UnitList::clear() {
   while (current) {
     Node *temp = current;
     current = current->next;
-    delete temp->unit;
+    // Không delete unit vì unit được tạo từ bên ngoài
     delete temp;
   }
   head = nullptr;
   size = 0;
 }
-UnitList::~UnitList() {
-  if (head == nullptr)
-    return; // Kiểm tra nếu danh sách đã trống.
-
-  Node *current = head;
-  while (current) {
-    Node *temp = current;
-    current = current->next;
-    delete temp->unit;
-    delete temp;
-  }
-}
+UnitList::~UnitList() { clear(); }
 
 bool UnitList::insert(Unit *unit) {
   if (!unit || size >= capacity)
@@ -194,7 +184,8 @@ bool UnitList::insert(Unit *unit) {
           dynamic_cast<Vehicle *>(unit)->getVehicleType()) {
         v->setQuantity(v->getQuantity() + unit->getQuantity()); //! Not clear
         v->setWeight(max(v->getWeight(), unit->getWeight())); // Cập nhật weight
-        delete unit;
+        // delete unit; // Không được delete unit, vì unit là object stack
+        // testcase tạo
         return true; // Đã có -> Không thêm nữa
       }
     }
@@ -204,7 +195,8 @@ bool UnitList::insert(Unit *unit) {
           dynamic_cast<Infantry *>(unit)->getInfantryType()) {
         i->setQuantity(i->getQuantity() + unit->getQuantity()); //! Not clear
         i->setWeight(max(i->getWeight(), unit->getWeight()));
-        delete unit;
+        // delete unit; // Không được delete unit, vì unit là object stack
+        // testcase tạo
         return true; //  Đã có -> Không thêm nữa
       }
     }
@@ -324,7 +316,12 @@ Army::Army(Unit **unitArray, int size, string name, BattleField *battleField)
     unitList->insert(const_cast<Unit *>(unitArray[i]));
   }
 }
-Army::~Army() { delete unitList; }
+Army::~Army() {
+  if (unitList) {
+    delete unitList;
+    unitList = nullptr;
+  }
+}
 int Army::getLF() const { return this->LF; }
 int Army::getEXP() const { return this->EXP; }
 void Army::setLF(int LF) { this->LF = LF; }
@@ -406,7 +403,7 @@ void LiberationArmy::captureUnits(Army *enemy) {
     if (unitList->insert(unit)) // Nếu insert thành công => Lấy được
       captured.push_back(unit);
   }
-  // 3. Chỉ xóa những cái đã bị lấy
+  // 3. Chỉ xóa những cái đã bị lấy khỏi danh sách của enemy
   enemy->removeUnitFromList(captured);
 }
 // public
@@ -718,7 +715,7 @@ void BattleField::applyTerrainEffects(Army *army) {
   // Duyệt qua toàn bộ bản đồ để tìm các yếu tố địa hình
   for (int i = 0; i < n_rows; i++) {
     for (int j = 0; j < n_cols; j++) {
-      if (terrain[i][j]) { // Nếu ô này có một yếu tố địa hình
+      if (terrain[i][j]) {              // Nếu ô này có một yếu tố địa hình
         terrain[i][j]->getEffect(army); // Áp dụng ảnh hưởng lên quân đội
       }
     }
