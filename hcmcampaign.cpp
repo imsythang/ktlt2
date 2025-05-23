@@ -34,7 +34,8 @@ Vehicle::Vehicle(int quantity, int weight, Position pos,
                  VehicleType vehicleType)
     : Unit(quantity, weight, pos), vehicleType(vehicleType) {}
 int Vehicle::getAttackScore() {
-  return ceil((this->vehicleType * 304 + quantity * weight) / 30);
+  int score = ceil((double)(this->vehicleType * 304 + quantity * weight) / 30);
+  return score;
 }
 string Vehicle::getVehicleTypeName(VehicleType type) {
   switch (type) {
@@ -85,17 +86,23 @@ Infantry::Infantry(int quantity, int weight, Position pos,
                    InfantryType infantryType)
     : Unit(quantity, weight, pos), infantryType(infantryType) {}
 int Infantry::getAttackScore() {
-  int root = digitalRoot(attackScore + 1975);
-  if (root > 7) {
-    quantity = ceil(quantity * 1.2); // +20% số lượng
-  } else if (root < 3) {
-    quantity = ceil(quantity * 0.9); // -10% số lượng
-  }
-  int attackScore = infantryType * 56 + quantity * weight;
+  int baseScore = infantryType * 56 + quantity * weight;
   if (infantryType == SPECIALFORCES && isSquareNumber(weight)) {
-    attackScore += 75;
+    baseScore += 75;
   }
-  return attackScore;
+
+  int root = digitalRoot(baseScore + 1975);
+  if (root > 7) {
+    quantity = ceil(quantity * 1.2);
+  } else if (root < 3) {
+    quantity = ceil(quantity * 0.9);
+  }
+
+  int finalScore = infantryType * 56 + quantity * weight;
+  if (infantryType == SPECIALFORCES && isSquareNumber(weight)) {
+    finalScore += 75;
+  }
+  return finalScore;
 }
 string Infantry::getInfantryTypeName(InfantryType type) {
   switch (type) {
@@ -261,12 +268,15 @@ string UnitList::str() const {
     current = current->next;
   }
   ss << "UnitList[count_vehicle=" << count_vehicle
-     << ";count_infantry=" << count_infantry << ";";
+     << ";count_infantry=" << count_infantry;
+
   current = head;
+  if (current)
+    ss << ";";
   while (current) {
     ss << current->unit->str();
     if (current->next) {
-      ss << ", ";
+      ss << ",";
     }
     current = current->next;
   }
