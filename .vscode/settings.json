@@ -64,7 +64,8 @@
     "unordered_map": "cpp",
     "vector": "cpp",
     "system_error": "cpp",
-    "iostream": "cpp"
+    "iostream": "cpp",
+    "__node_handle": "cpp"
   },
   "editor.tokenColorCustomizations": {
     "textMateRules": [

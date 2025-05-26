@@ -112,13 +112,15 @@ private:
   InfantryType infantryType;
   bool isSquareNumber(int n) const;
   int digitalRoot(int n) const;
-
+  bool boosted = false;
 public:
   Infantry(int quantity, int weight, Position pos, InfantryType infantryType);
   int getAttackScore() override;
   string str() const override;
   InfantryType getInfantryType() const;
   static string getInfantryTypeName(InfantryType type);
+  int calculateRawAttackScore() const;
+  void applyBoostOnce();
 };
 class UnitList {
 private:
@@ -139,7 +141,7 @@ public:
   Node *getHead() const { return head; }
   void remove(Unit *unit);
   void clear();
-  // TODO
+  void setCapacity(int S);
 };
 
 class Army {
@@ -189,7 +191,7 @@ protected:
 public:
   TerrainElement();
   TerrainElement(const Position &pos);
-  ~TerrainElement();
+  virtual ~TerrainElement();
   virtual void getEffect(Army *army) = 0;
 };
 
