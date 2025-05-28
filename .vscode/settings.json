@@ -65,7 +65,17 @@
     "vector": "cpp",
     "system_error": "cpp",
     "iostream": "cpp",
-    "__node_handle": "cpp"
+    "__node_handle": "cpp",
+    "sstream": "cpp",
+    "__config": "cpp",
+    "__assertion_handler": "cpp",
+    "__hash_table": "cpp",
+    "algorithm": "cpp",
+    "cstdio": "cpp",
+    "filesystem": "cpp",
+    "print": "cpp",
+    "string_view": "cpp",
+    "typeinfo": "cpp"
   },
   "editor.tokenColorCustomizations": {
     "textMateRules": [

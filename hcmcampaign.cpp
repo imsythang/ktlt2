@@ -1,4 +1,3 @@
-
 #include "hcmcampaign.h"
 // Hồ Sỹ Thắng - 2213188
 
@@ -71,7 +70,6 @@ bool Infantry::isSquareNumber(int n) const {
   return (root * root == n);
 }
 int Infantry::digitalRoot(int n) const {
-  cout << "Input n: " << n << endl;
   while (n >= 10) {
     int sum = 0;
     while (n > 0) {
@@ -80,32 +78,45 @@ int Infantry::digitalRoot(int n) const {
     }
     n = sum;
   }
-  cout << "Digital Root: " << n << endl;
   return n;
 }
 // Public method
 Infantry::Infantry(int quantity, int weight, Position pos,
                    InfantryType infantryType)
     : Unit(quantity, weight, pos), infantryType(infantryType) {}
-int Infantry::getAttackScore() {
+int Infantry::getAttackScore2() {
+  int score = infantryType * 56 + quantity * weight;
+  if (infantryType == SPECIALFORCES && isSquareNumber(weight)) {
+    score += 75;
+  }
+  return score;
+}
+void Infantry::applyBoostOnce() {
+  if (boosted)
+    return;
   int baseScore = infantryType * 56 + quantity * weight;
   if (infantryType == SPECIALFORCES && isSquareNumber(weight)) {
     baseScore += 75;
   }
-  if (!boosted) {
-    int root = digitalRoot(baseScore + 1975);
-    if (root > 7) {
-      quantity = ceil(quantity * 1.2);
-    } else if (root < 3) {
-      quantity = ceil(quantity * 0.9);
-    }
-    boosted = true;
+  int root = digitalRoot(baseScore + 1975);
+  if (root > 7) {
+    quantity = ceil(quantity * 1.2);
+  } else if (root < 3) {
+    quantity = ceil(quantity * 0.9);
   }
-  int finalScore = infantryType * 56 + quantity * weight;
+  boosted = true;
+}
+void Infantry::resetBoosted() {
+  boosted = false; // Đặt lại trạng thái boosted về false
+  // Không cần reset quantity và weight vì chúng không thay đổi sau khi boost
+}
+int Infantry::getAttackScore() {
+  applyBoostOnce();
+  int score = infantryType * 56 + quantity * weight;
   if (infantryType == SPECIALFORCES && isSquareNumber(weight)) {
-    finalScore += 75;
+    score += 75;
   }
-  return finalScore;
+  return score;
 }
 string Infantry::getInfantryTypeName(InfantryType type) {
   switch (type) {
@@ -195,6 +206,7 @@ bool UnitList::insert(Unit *unit) {
           dynamic_cast<Vehicle *>(unit)->getVehicleType()) {
         v->setQuantity(v->getQuantity() + unit->getQuantity()); //! Not clear
         v->setWeight(max(v->getWeight(), unit->getWeight())); // Cập nhật weight
+        // Cập nhật attack score
         return true;
       }
     }
@@ -204,6 +216,8 @@ bool UnitList::insert(Unit *unit) {
           dynamic_cast<Infantry *>(unit)->getInfantryType()) {
         i->setQuantity(i->getQuantity() + unit->getQuantity()); //! Not clear
         i->setWeight(max(i->getWeight(), unit->getWeight()));
+        i->resetBoosted(); // Đặt boosted về false
+        i->applyBoostOnce(); // Cập nhật attack score
         return true;
       }
     }
@@ -228,11 +242,23 @@ bool UnitList::insert(Unit *unit) {
     newNode->next = head;
     head = newNode;
     size++;
+    // Cập nhật attack score cho Infantry
+    Infantry *infantryUnit = dynamic_cast<Infantry *>(unit);
+    infantryUnit->applyBoostOnce(); // Cập nhật attack score
     return true;
   }
   delete newNode;
   return false;
 }
+/**
+ * @brief Kiểm tra xem danh sách có chứa loại xe cụ thể không
+ *
+ * @param[in] vehicleType
+ * @return true
+ * @return false
+ *
+ * @author Hồ Sỹ Thắng
+ */
 bool UnitList::isContain(VehicleType vehicleType) // Có TRUCK, TANK chưa ....
 {
   Node *current = head;
@@ -269,7 +295,6 @@ string UnitList::str() const {
   }
   ss << "UnitList[count_vehicle=" << count_vehicle
      << ";count_infantry=" << count_infantry;
-
   current = head;
   if (current)
     ss << ";";
@@ -307,16 +332,39 @@ void UnitList::remove(Unit *unit) {
 }
 
 // Army::
+/**
+ * @brief Construct a new Army:: Army object
+ *
+ * @param[in] unitArray
+ * @param[in] size
+ * @param[in] name
+ * @param[in] battleField
+ *
+ * @author Hồ Sỹ Thắng
+ */
 Army::Army(Unit **unitArray, int size, string name, BattleField *battleField)
     : name(name), battleField(battleField) {
   LF = 0;
   EXP = 0;
-  unitList = new UnitList(12);
   for (int idx = 0; idx < size; idx++) {
-    unitList->insert(const_cast<Unit *>(unitArray[idx]));
+    Unit *u = const_cast<Unit *>(unitArray[idx]);
+    Vehicle *v = dynamic_cast<Vehicle *>(u);
+    Infantry *i = dynamic_cast<Infantry *>(u);
+
+    if (v) {
+      LF += v->getAttackScore();
+    }
+    if (i) {
+      EXP += i->getAttackScore2();
+    }
   }
-  updatePowerStats();
-  unitList->setCapacity(LF + EXP);
+  LF = max(0, min(LF, 1000));
+  EXP = max(0, min(EXP, 500));
+  unitList = new UnitList(LF + EXP);
+  for (int i = 0; i < size; i++) {
+    unitList->insert(const_cast<Unit *>(unitArray[i]));
+  }
+  updatePowerStats(); // Cập nhật chỉ số
 }
 Army::~Army() {
   if (unitList) {
@@ -343,15 +391,12 @@ void Army::updatePowerStats() {
   while (current) {
     Vehicle *v = dynamic_cast<Vehicle *>(current->unit);
     Infantry *i = dynamic_cast<Infantry *>(current->unit);
-
     if (v)
       this->LF += v->getAttackScore();
     if (i)
       this->EXP += i->getAttackScore();
-
     current = current->next;
   }
-
   this->LF = min(1000, this->LF);
   this->EXP = min(500, this->EXP);
 }

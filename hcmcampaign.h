@@ -112,7 +112,7 @@ private:
   InfantryType infantryType;
   bool isSquareNumber(int n) const;
   int digitalRoot(int n) const;
-  bool boosted = false;
+  bool boosted = false; // Chỉ áp dụng boost một lần
 
 public:
   Infantry(int quantity, int weight, Position pos, InfantryType infantryType);
@@ -123,6 +123,7 @@ public:
   int calculateRawAttackScore() const;
   void applyBoostOnce();
   int getAttackScore2();
+  void resetBoosted();
 };
 class UnitList {
 private:

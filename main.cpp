@@ -1,6 +1,5 @@
 #include "hcmcampaign.h"
 using namespace std;
-
 void g_satc_01() {
   cout << "----- Sample Testcase 01 -----" << endl;
   Configuration *config = new Configuration("config.txt");
@@ -18,7 +17,16 @@ void g_satc_01() {
          "REGULARINFANTRY,quantity=5,weight=2,position=(3,3)]],eventCode=23]"
       << endl;
 }
-
+/**
+ * @brief Sample Testcase 02
+ *
+ *
+ * @version 1.0.0
+ * @author Your Full Name <your.email@company.com>
+ * @date 2025-05-27
+ * @copyright Copyright (c) 2025 Your Company Name.
+ * @copyright Licensed under MIT License.
+ */
 void g_satc_02() {
   cout << "----- Sample Testcase 02 -----" << endl;
   Vehicle tankOfLiber(20, 20, Position(1, 2), MORTAR);
@@ -85,6 +93,7 @@ void g_satc_02() {
        << endl;
 }
 
+
 void g_satc_03() {
   cout << "----- Sample Testcase 03 -----" << endl;
   HCMCampaign *campaign = new HCMCampaign("config.txt");
@@ -110,7 +119,8 @@ void g_satc_05() {
   cout << "Expected:" << endl;
   cout << "----- Sample Testcase 05 -----" << endl;
   cout << "Vehicle[vehicleType=MORTAR,quantity=20,weight=20,position=(1,2)]"
-       << endl;
+  << endl;
+
 }
 
 void g_satc_06() {
